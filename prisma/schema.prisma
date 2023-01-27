@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Story {
+model Thought {
   id        Int     @id @default(autoincrement())
   text      String  @db.VarChar(255)
   creatorId Int
@@ -20,26 +20,26 @@ model Story {
 }
 
 model Creator {
-  id         Int     @id @default(autoincrement())
-  uuid       String  @unique @default(uuid()) @db.Uuid
-  firstName  String  @db.VarChar(255)
-  middleName String  @db.VarChar(255)
-  lastName   String  @db.VarChar(255)
-  stories    Story[]
-  Title      Title[]
+  id       Int       @id @default(autoincrement())
+  uuid     String    @unique @default(uuid()) @db.Uuid
+  name     String?   @db.VarChar(255)
+  Thoughts Thought[]
+  Title    Title[]
 }
 
 model Title {
   id        Int     @id @default(autoincrement())
-  text      String  @db.VarChar(255)
+  title     String  @db.VarChar(255)
   creatorId Int
   creator   Creator @relation(fields: [creatorId], references: [id])
-  storyId   Int     @unique
-  story     Story   @relation(fields: [storyId], references: [id])
+  thoughtId Int     @unique
+  thought   Thought @relation(fields: [thoughtId], references: [id])
+  Tag       Tag[]
 }
 
 model Tag {
-  id    Int     @id @default(autoincrement())
-  name  String  @db.VarChar(255)
-  Story Story[]
+  id      Int       @id @default(autoincrement())
+  name    String    @db.VarChar(255)
+  Thought Thought[]
+  Title   Title[]
 }
