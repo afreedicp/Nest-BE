@@ -49,6 +49,10 @@ export class StoryController {
         where: {
           id: Number(id),
         },
+        include: {
+          Title: true,
+          creator: true,
+        },
       });
       return storyText;
     } catch (error) {
@@ -109,16 +113,17 @@ export class StoryController {
       throw new BadRequestException();
     }
   }
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Patch('/updateStory/:id')
+  // @UseInterceptors(ClassSerializerInterceptor)
+  @Patch(':id')
   @HttpCode(200)
   async updateStory(@Param('id') id: string, @Body() value): Promise<Thought> {
     try {
-      const { text } = value;
+      const { text, title, creator } = value;
 
-      if (!text) {
+      if (!text || !title || !creator) {
         throw new NotFoundException('text not found');
       }
+
       const updateStory = await prisma.thought.update({
         where: {
           id: Number(id),
@@ -127,10 +132,34 @@ export class StoryController {
           text: text,
         },
       });
+      const updateTitle = await prisma.title.updateMany({
+        where: {
+          thoughtId: updateStory.id,
+        },
+        data: {
+          title: title,
+        },
+      });
+      const updatecreator = await prisma.creator.update({
+        where: {
+          id: updateStory.creatorId,
+        },
+        data: {
+          name: creator,
+        },
+      });
+      const thought = await prisma.thought.findUnique({
+        where: { id: updateStory.id },
+        include: {
+          Title: true,
+          creator: true,
+        },
+      });
+
       if (!updateStory) {
         throw new NotFoundException();
       } else {
-        return new StoryEntity(updateStory);
+        return thought;
       }
     } catch (error) {
       throw new NotFoundException();
